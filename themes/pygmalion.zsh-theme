@@ -26,7 +26,8 @@ prompt_pygmalion_precmd(){
   if [[ $prompt_length -gt 40 ]]; then
     nl=$'\n%{\r%}';
   fi
-  PROMPT="$base_prompt$gitinfo$nl$post_prompt"
+  PROMPT="$base_prompt$gitinfo$(emoji-clock) $(date)$nl$post_prompt"
+#  PROMPT="$base_prompt$gitinfo$nl$post_prompt"
 }
 
 prompt_setup_pygmalion
