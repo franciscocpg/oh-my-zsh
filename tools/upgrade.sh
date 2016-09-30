@@ -22,7 +22,7 @@ fi
 
 printf "${BLUE}%s${NORMAL}\n" "Updating Oh My Zsh"
 cd "$ZSH"
-if git pull --rebase --stat origin fork
+if git pull --stat fork master
 then
   printf '%s' "$GREEN"
   printf '%s\n' '         __                                     __   '
