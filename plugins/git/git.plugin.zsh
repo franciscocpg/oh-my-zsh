@@ -33,6 +33,17 @@ function work_in_progress() {
   fi
 }
 
+function prune_it() {
+  # web must be on master
+  git checkout master
+  # Remove the remotes
+  git pull --prune
+  # Remove these remotes local ref 
+  git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D
+  # Remove the merged one 
+  git branch -D "$(git branch --merged | grep -v 'master' | cut -c 3-)"
+}
+
 #
 # Aliases
 # (sorted alphabetically)
@@ -190,6 +201,7 @@ alias gp='git push'
 alias gpd='git push --dry-run'
 alias gpoat='git push origin --all && git push origin --tags'
 compdef _git gpoat=git-push
+alias gprune=prune_it
 alias gpu='git push upstream'
 alias gpv='git push -v'
 
