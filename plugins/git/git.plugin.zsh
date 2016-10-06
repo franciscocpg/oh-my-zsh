@@ -40,8 +40,6 @@ function prune_it() {
   git pull --prune
   # Remove these remotes local ref 
   git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D
-  # Remove the merged one 
-  git branch -D "$(git branch --merged | grep -v 'master' | cut -c 3-)"
 }
 
 #
