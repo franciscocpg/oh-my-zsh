@@ -35,3 +35,22 @@ fi
 
 [ -x $_aws_zsh_completer_path ] && source $_aws_zsh_completer_path
 unset _aws_zsh_completer_path
+
+function aws-ec2-desc-instances {
+  INSTANCE_ID="$1"
+  if [ -n "$INSTANCE_ID" ]; then
+    INSTANCE_IDS=(--instance-ids $INSTANCE_ID)
+  fi
+  aws ec2 describe-instances $INSTANCE_IDS | \
+  jq '.Reservations[].Instances[] | {InstanceId: .InstanceId, Status: .State.Name, Ip: .NetworkInterfaces[0].Association.PublicIp}'
+}
+
+function aws-ec2-start-instances {
+  INSTANCE_ID="$1"
+  aws ec2 start-instances --instance-ids $INSTANCE_ID | jq .
+}
+
+function aws-ec2-stop-instances {
+  INSTANCE_ID="$1"
+  aws ec2 stop-instances --instance-ids $INSTANCE_ID | jq .
+}
