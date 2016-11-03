@@ -34,12 +34,12 @@ function work_in_progress() {
 }
 
 function prune_it() {
-  # web must be on master
+  # we must be on master
   git checkout master
   # Remove the remotes
   git pull --prune
   # Remove these remotes local ref 
-  git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D
+  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -D
 }
 
 #
