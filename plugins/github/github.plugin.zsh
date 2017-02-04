@@ -74,5 +74,23 @@ git.io() {
   curl -i -s https://git.io -F "url=$1" | grep "Location" | cut -f 2 -d " "
 }
 
+github-release-repo() {
+  echo "Tag"
+  read TAG
+  which github-release > /dev/null || go get -v github.com/c4milo/github-release;
+  project=$(basename $(dirname $PWD))/$(basename $PWD) &&
+  latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`) &&
+  comparison="$latest_tag..HEAD" &&
+  if [ -z "$latest_tag" ]; then comparison=""; fi &&
+  changelog=$(git log $comparison --oneline --no-merges --reverse) &&
+  echo "Releasing\nProject: $project\nTag: $TAG\nBranch: \"master\"\nChangelog: \"**Changelog**<br/>$changelog\""
+  echo -n "Confirm (y/N)?"
+  read CONFIRM
+  if [ "$CONFIRM" = "y" ]; then
+    github-release $project $TAG "master" "**Changelog**<br/>$changelog" '' &&
+    git pull
+  fi
+}
+
 # End Functions #############################################################
 
