@@ -82,7 +82,7 @@ github-release-repo() {
   latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`) &&
   comparison="$latest_tag..HEAD" &&
   if [ -z "$latest_tag" ]; then comparison=""; fi &&
-  changelog=$(git log $comparison --oneline --no-merges --reverse) &&
+  changelog=$(git log $comparison --oneline --no-merges --reverse --no-color) &&
   echo "Releasing\nProject: $project\nTag: $TAG\nBranch: \"master\"\nChangelog: \"**Changelog**<br/>$changelog\""
   echo -n "Confirm (y/N)?"
   read CONFIRM
