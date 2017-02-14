@@ -75,6 +75,8 @@ git.io() {
 }
 
 github-release-repo() {
+  LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+  echo "Latest tag: $LATEST_TAG"
   echo "Tag"
   read TAG
   which github-release > /dev/null || go get -v github.com/c4milo/github-release;
