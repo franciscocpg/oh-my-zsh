@@ -22,7 +22,7 @@ fi
 
 printf "${BLUE}%s${NORMAL}\n" "Updating Oh My Zsh"
 cd "$ZSH"
-if git pull --stat fork master
+if git pull --stat --allow-unrelated-histories fork master
 then
   git push
   printf '%s' "$GREEN"
