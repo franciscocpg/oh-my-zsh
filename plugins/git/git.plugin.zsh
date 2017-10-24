@@ -38,9 +38,6 @@ function prune_it() {
   git checkout master
   # Remove the remotes
   git pull --prune
-  # Fetch to make sure it's already fully merged to master. If it's not
-  # the next command will fail
-  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git fetch
   # Remove these remotes local ref 
   git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -d
 }
