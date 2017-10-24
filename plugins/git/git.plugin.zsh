@@ -39,7 +39,7 @@ function prune_it() {
   # Remove the remotes
   git pull --prune
   # Remove these remotes local ref 
-  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -d
+  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -D
 }
 
 function truncate() {
