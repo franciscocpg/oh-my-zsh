@@ -45,8 +45,10 @@ if [ $commands[kubectl] ]; then
   k8s-dash-watch() {
   	NS=$1
 	SELECTOR=$2
-	INTERVAL=${3:-10}
-  	watch -n $INTERVAL "zsh -i -c 'k8s-dash $NS $SELECTOR'"
+	OLD_BEFORE_SECONDS=$3
+	NEW_AFTER_SECONDS=$4
+	INTERVAL=${5:-10}
+	watch -n $INTERVAL "zsh -i -c 'k8s-dash $NS $SELECTOR $OLD_BEFORE_SECONDS $NEW_AFTER_SECONDS'"
   }
 fi
 
