@@ -11,15 +11,15 @@ if [ $commands[kubectl] ]; then
 	SELECTOR=$2
 
 	NOW=$(date +%s)
-	TIMELINE_SECONDS=${3:-1800}
-	TIMELINE_TIMESTAMP=$(($NOW - $TIMELINE_SECONDS))
+	CUTOFF_SECONDS=${3:-1800}
+	CUTOFF_TIMESTAMP=$(($NOW - $CUTOFF_SECONDS))
 
 	echo "namespace=${NS:-default} selector=${SELECTOR:-none}"
 	echo "===================================================="
 
 	PODS=$(kubectl -n "$NS" get pod --selector "$SELECTOR" -o json | jq '[.items[] | {status: .status.phase, ready: .status.containerStatuses[0].ready, timestamp: .metadata.creationTimestamp | fromdate}'])
-	OLD_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp <= $TIMELINE_TIMESTAMP)]")
-	NEW_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp > $TIMELINE_TIMESTAMP)]")
+	OLD_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp <= $CUTOFF_TIMESTAMP)]")
+	NEW_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp > $CUTOFF_TIMESTAMP)]")
 
 	NEW_RUNNING_READY=$(echo "$NEW_PODS" | jq '[.[] | select(.ready == true and .status == "Running")] | length')
 	NEW_RUNNING_NOT_READY=$(echo "$NEW_PODS" | jq '[.[] | select(.ready == false and .status == "Running")] | length')
@@ -43,9 +43,9 @@ if [ $commands[kubectl] ]; then
   k8s-dash-watch() {
   	NS=$1
 	SELECTOR=$2
-	TIMELINE_SECONDS=$3
+	CUTOFF_SECONDS=$3
 	INTERVAL=${5:-10}
-	watch -n $INTERVAL "zsh -i -c 'k8s-dash $NS \"$SELECTOR\" $TIMELINE_SECONDS'"
+	watch -n $INTERVAL "zsh -i -c 'k8s-dash $NS \"$SELECTOR\" $CUTOFF_SECONDS'"
   }
 fi
 
