@@ -2,8 +2,78 @@
 #
 # Author: https://github.com/pstadler
 
+alias k8s='kubectl'
 if [ $commands[kubectl] ]; then
   source <(kubectl completion zsh)
+
+  k8s-dash() {
+	RED='\033[0;31m'
+	GREEN='\033[0;32m'
+	NC='\033[0m' # No Color
+
+  	NS=$1
+	SELECTOR=$2
+	CUTOFF_SECONDS=${3:-1800}
+
+	NOW=$(date +%s)
+	CUTOFF_TIMESTAMP=$(($NOW - $CUTOFF_SECONDS))
+
+	echo "namespace=${NS:-default} selector=${SELECTOR:-none}"
+
+	PODS_JSON="${PODS_JSON:-$(kubectl -n "$NS" get pod --selector "$SELECTOR" -o json)}"
+	PODS="$(echo -E "$PODS_JSON" | jq '[.items[] | {status: .status.phase, ready: .status.containerStatuses[0].ready, timestamp: .metadata.creationTimestamp | fromdate}'])"
+	OLD_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp <= $CUTOFF_TIMESTAMP)]")
+	NEW_PODS=$(echo "$PODS" | jq "[.[] | select(.timestamp > $CUTOFF_TIMESTAMP)]")
+
+	echo "===================================================="
+	echo "new pods"
+	echo "===================================================="
+
+	NEW_PODS_STATUSES=$(echo "$NEW_PODS" | jq -r '[.[].status+"="+(.[].ready | tostring)] | unique | .[]')
+	if [ -n "$NEW_PODS_STATUSES" ]
+	then
+		while read -r status_ready; do
+			array=($(echo "$status_ready" | tr '=' ' '))
+			st="${array[1]}"
+			ready="${array[2]}"
+			ready_string=$($ready && echo "and ready" || echo "not ready")
+			color="$($ready && echo $GREEN || echo $RED)"
+			len=$(echo "$NEW_PODS" | jq "[.[] | select(.ready == $ready and .status == \"$st\")] | length")
+			echo -e "${color}$st $ready_string: $len${NC}"
+		done <<< "$NEW_PODS_STATUSES"
+	else
+		echo "No results"
+	fi
+
+	echo ""
+	echo "===================================================="
+	echo "old pods"
+	echo "===================================================="
+
+	OLD_PODS_STATUSES=$(echo "$OLD_PODS" | jq -r '[.[].status+"="+(.[].ready | tostring)] | unique | .[]')
+	if [ -n "$OLD_PODS_STATUSES" ]
+	then
+		while read -r status_ready; do
+			array=($(echo "$status_ready" | tr '=' ' '))
+			st="${array[1]}"
+			ready="${array[2]}"
+			ready_string=$($ready && echo "and ready" || echo "not ready")
+			color="$($ready && echo $GREEN || echo $RED)"
+			len=$(echo "$OLD_PODS" | jq "[.[] | select(.ready == $ready and .status == \"$st\")] | length")
+			echo "${color}$st $ready_string: $len${nc}"
+		done <<< "$OLD_PODS_STATUSES"
+	else
+		echo "No results"
+	fi
+  }
+
+  k8s-dash-watch() {
+  	NS=$1
+	SELECTOR=$2
+	CUTOFF_SECONDS=$3
+	INTERVAL=${4:-10}
+	watch --color -n $INTERVAL "zsh -i -c 'k8s-dash $NS \"$SELECTOR\" $CUTOFF_SECONDS'"
+  }
 fi
 
 # This command is used ALOT both below and in daily life
