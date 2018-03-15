@@ -13,9 +13,9 @@ if [ $commands[kubectl] ]; then
 
   	NS=$1
 	SELECTOR=$2
+	CUTOFF_SECONDS=${3:-1800}
 
 	NOW=$(date +%s)
-	CUTOFF_SECONDS=${3:-1800}
 	CUTOFF_TIMESTAMP=$(($NOW - $CUTOFF_SECONDS))
 
 	echo "namespace=${NS:-default} selector=${SELECTOR:-none}"
