@@ -69,3 +69,26 @@ function aws-ec2-stop-instances {
   INSTANCE_ID="$1"
   aws ec2 stop-instances --instance-ids $INSTANCE_ID | jq .
 }
+
+function aws-add-security-group-rule-descomplica {
+  GROUP_NAME="$1"
+  PORT="$2"
+  IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  DESCRIPTION="${4:-francisco temp access}"
+
+  aws ec2 authorize-security-group-ingress \
+  --group-name "$GROUP_NAME" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$PORT', "ToPort": '$PORT', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$DESCRIPTION'"}]}]' \
+  --region sa-east-1 --profile descomplica
+}
+
+function aws-revoke-security-group-ingress-descomplica {
+  GROUP_NAME="$1"
+  PORT="$2"
+  IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+
+  aws ec2 revoke-security-group-ingress \
+  --group-name "$GROUP_NAME" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$PORT', "ToPort": '$PORT', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]' \
+  --region sa-east-1 --profile descomplica
+}
