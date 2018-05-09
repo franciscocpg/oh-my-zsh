@@ -69,3 +69,59 @@ function aws-ec2-stop-instances {
   INSTANCE_ID="$1"
   aws ec2 stop-instances --instance-ids $INSTANCE_ID | jq .
 }
+
+function aws-authorize-security-group-ingress {
+  local GROUP_NAME="$1"
+
+  local PORT="$2"
+  local PORT_RANGE=($(echo "${PORT//-/ }"))
+  local FROM_PORT="$PORT_RANGE[1]"
+  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+
+  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local DESCRIPTION="${4:-francisco temp access}"
+
+  aws ec2 authorize-security-group-ingress \
+  --group-name "$GROUP_NAME" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$DESCRIPTION'"}]}]'
+}
+
+function aws-revoke-security-group-ingress {
+  local GROUP_NAME="$1"
+
+  local PORT="$2"
+  local PORT_RANGE=($(echo "${PORT//-/ }"))
+  local FROM_PORT="$PORT_RANGE[1]"
+  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+
+  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+
+  aws ec2 revoke-security-group-ingress \
+  --group-name "$GROUP_NAME" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
+}
+
+function aws-list-authorized-security-group-ingress-by-ip {
+  local IP="${1:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+
+  aws ec2 describe-security-groups \
+  --filters Name=ip-permission.cidr,Values="$IP/32" \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[] | select(.CidrIp=="'$IP'/32") '\
+'| [$p.Name, $r.PortRange] | join(" ")' \
+  | sort -u
+}
+
+function aws-list-authorized-security-group-ingress-by-description {
+  local DESCRIPTION="${4:-francisco temp access}"
+
+  aws ec2 describe-security-groups \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[] | select(.Description=="'$DESCRIPTION'")'\
+'| [$p.Name, .CidrIp, $r.PortRange] | join(" ")' \
+  | sort -u
+}
