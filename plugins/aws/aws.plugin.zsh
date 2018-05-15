@@ -104,24 +104,36 @@ function aws-revoke-security-group-ingress {
 function aws-list-authorized-security-group-ingress-by-ip {
   local IP="${1:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
 
-  aws ec2 describe-security-groups \
+  local header="****************\t***************\t********************
+Security Group\tIP\tPort Range
+****************\t***************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
   --filters Name=ip-permission.cidr,Values="$IP/32" \
   | jq -r '.SecurityGroups[]'\
 '| {Name: .GroupName, IpPermissions: .IpPermissions} as $p'\
 '| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
 '| .IpRanges[] | select(.CidrIp=="'$IP'/32") '\
-'| [$p.Name, $r.PortRange] | join(" ")' \
-  | sort -u
+'| [$p.Name, .CidrIp, $r.PortRange] | join("\t")' \
+  | sort -u)
+
+  echo "$header\n$result" | column -t -s $'\t'
 }
 
 function aws-list-authorized-security-group-ingress-by-description {
-  local DESCRIPTION="${4:-$USERNAME temp access}"
+  local DESCRIPTION="${1:-$USERNAME temp access}"
 
-  aws ec2 describe-security-groups \
+  local header="****************\t***************\t********************
+Security Group\tIP\tPort Range
+****************\t***************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
   | jq -r '.SecurityGroups[]'\
 '| {Name: .GroupName, IpPermissions: .IpPermissions} as $p'\
 '| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
 '| .IpRanges[] | select(.Description=="'$DESCRIPTION'")'\
-'| [$p.Name, .CidrIp, $r.PortRange] | join(" ")' \
-  | sort -u
+'| [$p.Name, .CidrIp, $r.PortRange] | join("\t")' \
+  | sort -u)
+  
+  echo "$header\n$result" | column -t -s $'\t'
 }
