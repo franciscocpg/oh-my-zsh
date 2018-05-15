@@ -79,7 +79,7 @@ function aws-authorize-security-group-ingress {
   local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
 
   local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
-  local DESCRIPTION="${4:-francisco temp access}"
+  local DESCRIPTION="${4:-$USERNAME temp access}"
 
   aws ec2 authorize-security-group-ingress \
   --group-name "$GROUP_NAME" \
@@ -115,7 +115,7 @@ function aws-list-authorized-security-group-ingress-by-ip {
 }
 
 function aws-list-authorized-security-group-ingress-by-description {
-  local DESCRIPTION="${4:-francisco temp access}"
+  local DESCRIPTION="${4:-$USERNAME temp access}"
 
   aws ec2 describe-security-groups \
   | jq -r '.SecurityGroups[]'\
