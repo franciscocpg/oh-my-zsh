@@ -36,6 +36,12 @@ if [ $commands[kubectl] ]; then
 			array=($(echo "$status_ready" | tr '=' ' '))
 			st="${array[1]}"
 			ready="${array[2]}"
+
+			if [ "$ready" == "null" ]
+			then
+				ready=false
+			fi
+
 			ready_string=$($ready && echo "and ready" || echo "not ready")
 			color="$($ready && echo $GREEN || echo $RED)"
 			len=$(echo "$NEW_PODS" | jq "[.[] | select(.ready == $ready and .status == \"$st\")] | length")
