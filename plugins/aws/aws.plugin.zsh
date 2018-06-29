@@ -170,7 +170,13 @@ Security Group\tIP\tPort Range\tDescription
   echo "$header\n$result" | column -t -s $'\t'
 }
 
-function aws-start-workspace() {
+function aws-workspace-status() {
+  local workspace_id="${1:-ws-j8w1k9l32}"
+
+  aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State
+}
+
+function aws-workspace-start() {
   local workspace_id="${1:-ws-j8w1k9l32}"
 
   local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
@@ -220,7 +226,7 @@ function aws-start-workspace() {
 }
 
 
-function aws-stop-workspace() {
+function aws-workspace-stop() {
   local workspace_id="${1:-ws-j8w1k9l32}"
 
   local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
