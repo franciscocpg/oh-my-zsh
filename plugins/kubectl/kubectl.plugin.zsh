@@ -82,7 +82,7 @@ if [ $commands[kubectl] ]; then
   }
 fi
 
-# This command is used ALOT both below and in daily life
+# This command is used a LOT both below and in daily life
 alias k=kubectl
 
 # Apply a YML file
