@@ -77,17 +77,29 @@ github-release-repo() {
   echo "Latest tag: $LATEST_TAG"
   echo "Tag"
   read TAG
+
+  echo "Branch/revision: (Leave empty to use master branch)"
+  read BRANCH
+  BRANCH=${BRANCH:-master}
+
+  if [ ! $(git rev-parse --verify --quiet $BRANCH) ]
+  then
+    echo "Branch/revision $BRANCH does not exist"
+    return
+  fi
+  
   which github-release > /dev/null || go get -v github.com/c4milo/github-release;
+
   project=$(basename $(dirname $PWD))/$(basename $PWD) &&
   latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`) &&
-  comparison="$latest_tag..HEAD" &&
+  comparison="$latest_tag..$BRANCH" &&
   if [ -z "$latest_tag" ]; then comparison=""; fi &&
   changelog=$(git log $comparison --oneline --no-merges --reverse --no-color) &&
-  echo "Releasing\nProject: $project\nTag: $TAG\nBranch: \"master\"\nChangelog: \"**Changelog**<br/>$changelog\""
+  echo "Releasing\nProject: $project\nTag: $TAG\nBranch/revision: \"$BRANCH\"\nChangelog: \"**Changelog**<br/>$changelog\""
   echo -n "Confirm (y/N)?"
   read CONFIRM
   if [ "$CONFIRM" = "y" ]; then
-    github-release $project $TAG "master" "**Changelog**<br/>$changelog" '' &&
+    github-release $project $TAG "$BRANCH" "**Changelog**<br/>$changelog" '' &&
     git pull
   fi
 }
