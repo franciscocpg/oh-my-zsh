@@ -133,6 +133,40 @@ function aws-revoke-security-group-ingress-by-id {
   --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
 }
 
+function aws-list-security-group-ingress-by-name {
+  local header="************************************************\t***************\t********************\t********************
+Security Group\tIP\tPort Range\tDescription
+************************************************\t***************\t********************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
+  --group-names "$1" \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[]'\
+'| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
+  | sort -u)
+
+  echo "$header\n$result" | column -t -s $'\t'
+}
+
+function aws-list-security-group-ingress-by-id {
+  local header="************************************************\t***************\t********************\t********************
+Security Group\tIP\tPort Range\tDescription
+************************************************\t***************\t********************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
+  --group-ids "$1" \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[]'\
+'| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
+  | sort -u)
+
+  echo "$header\n$result" | column -t -s $'\t'
+}
+
 function aws-list-authorized-security-group-ingress-by-ip {
   local IP="${1:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
 
