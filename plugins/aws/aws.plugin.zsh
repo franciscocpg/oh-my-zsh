@@ -49,84 +49,120 @@ fi
 unset _aws_zsh_completer_path
 
 function aws-ec2-desc-instances {
-  INSTANCE_ID="$1"
-  if [ -n "$INSTANCE_ID" ]; then
-    INSTANCE_IDS=(--instance-ids $INSTANCE_ID)
+  local instance_id="$1"
+
+  if [ -n "$instance_id" ]; then
+    local instance_ids=(--instance-ids $instance_id)
   fi
-  aws ec2 describe-instances $INSTANCE_IDS | \
+
+  aws ec2 describe-instances $instance_ids | \
   jq '.Reservations[].Instances[] | {InstanceId: .InstanceId, Status: .State.Name, Ip: .NetworkInterfaces[0].Association.PublicIp}'
 }
 
 function aws-ec2-start-instances {
-  INSTANCE_ID="$1"
-  aws ec2 start-instances --instance-ids $INSTANCE_ID | jq .
+  local instance_id="$1"
+  aws ec2 start-instances --instance-ids $instance_id | jq .
 }
 
 function aws-ec2-stop-instances {
-  INSTANCE_ID="$1"
-  aws ec2 stop-instances --instance-ids $INSTANCE_ID | jq .
+  local instance_id="$1"
+  aws ec2 stop-instances --instance-ids $instance_id | jq .
 }
 
 function aws-authorize-security-group-ingress-by-name {
-  local GROUP_NAME="$1"
+  local group_name="$1"
 
-  local PORT="$2"
-  local PORT_RANGE=($(echo "${PORT//-/ }"))
-  local FROM_PORT="$PORT_RANGE[1]"
-  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+  local port="$2"
+  local port_range=($(echo "${port//-/ }"))
+  local from_port="$port_range[1]"
+  local to_port="${port_range[2]:-$from_port}"
 
   local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
-  local DESCRIPTION="${4:-$USERNAME temp access}"
+  local description="${4:-$USERNAME temp access}"
 
   aws ec2 authorize-security-group-ingress \
-  --group-name "$GROUP_NAME" \
-  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$DESCRIPTION'"}]}]'
+  --group-name "$group_name" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$description'"}]}]'
 }
 
 function aws-authorize-security-group-ingress-by-id {
-  local GROUP_ID="$1"
+  local group_id="$1"
 
-  local PORT="$2"
-  local PORT_RANGE=($(echo "${PORT//-/ }"))
-  local FROM_PORT="$PORT_RANGE[1]"
-  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+  local port="$2"
+  local port_range=($(echo "${port//-/ }"))
+  local from_port="$port_range[1]"
+  local to_port="${port_range[2]:-$from_port}"
 
   local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
-  local DESCRIPTION="${4:-$USERNAME temp access}"
+  local description="${4:-$USERNAME temp access}"
 
   aws ec2 authorize-security-group-ingress \
-  --group-id "$GROUP_ID" \
-  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$DESCRIPTION'"}]}]'
+  --group-id "$group_id" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32", "Description": "'$description'"}]}]'
 }
 
 function aws-revoke-security-group-ingress-by-name {
-  local GROUP_NAME="$1"
+  local group_name="$1"
 
-  local PORT="$2"
-  local PORT_RANGE=($(echo "${PORT//-/ }"))
-  local FROM_PORT="$PORT_RANGE[1]"
-  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+  local port="$2"
+  local port_range=($(echo "${port//-/ }"))
+  local from_port="$port_range[1]"
+  local to_port="${port_range[2]:-$from_port}"
 
   local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
 
   aws ec2 revoke-security-group-ingress \
-  --group-name "$GROUP_NAME" \
-  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
+  --group-name "$group_name" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
 }
 
 function aws-revoke-security-group-ingress-by-id {
-  local GROUP_ID="$1"
+  local group_id="$1"
 
-  local PORT="$2"
-  local PORT_RANGE=($(echo "${PORT//-/ }"))
-  local FROM_PORT="$PORT_RANGE[1]"
-  local TO_PORT="${PORT_RANGE[2]:-$FROM_PORT}"
+  local port="$2"
+  local port_range=($(echo "${port//-/ }"))
+  local from_port="$port_range[1]"
+  local to_port="${port_range[2]:-$from_port}"
 
   local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
 
   aws ec2 revoke-security-group-ingress \
-  --group-id "$GROUP_ID" \
-  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$FROM_PORT', "ToPort": '$TO_PORT', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
+  --group-id "$group_id" \
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
+}
+
+function aws-list-security-group-ingress-by-name {
+  local header="************************************************\t***************\t********************\t********************
+Security Group\tIP\tPort Range\tDescription
+************************************************\t***************\t********************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
+  --group-names "$1" \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[]'\
+'| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
+  | sort -u)
+
+  echo "$header\n$result" | column -t -s $'\t'
+}
+
+function aws-list-security-group-ingress-by-id {
+  local header="************************************************\t***************\t********************\t********************
+Security Group\tIP\tPort Range\tDescription
+************************************************\t***************\t********************\t********************"
+
+  local result=$(aws ec2 describe-security-groups \
+  --group-ids "$1" \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[]'\
+'| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
+  | sort -u)
+
+  echo "$header\n$result" | column -t -s $'\t'
 }
 
 function aws-list-authorized-security-group-ingress-by-ip {
@@ -149,7 +185,7 @@ Security Group\tIP\tPort Range\tDescription
 }
 
 function aws-list-authorized-security-group-ingress-by-description {
-  local DESCRIPTION="${1:-$USERNAME temp access}"
+  local description="${1:-$USERNAME temp access}"
 
   local header="************************************************\t***************\t********************\t********************
 Security Group\tIP\tPort Range\tDescription
@@ -159,9 +195,114 @@ Security Group\tIP\tPort Range\tDescription
   | jq -r '.SecurityGroups[]'\
 '| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
 '| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
-'| .IpRanges[] | select(.Description=="'$DESCRIPTION'")'\
+'| .IpRanges[] | select(.Description=="'$description'")'\
 '| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
   | sort -u)
   
   echo "$header\n$result" | column -t -s $'\t'
+}
+
+function aws-workspace-status() {
+  local workspace_id="${1:-ws-j8w1k9l32}"
+
+  aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State
+}
+
+function aws-workspace-start() {
+  local workspace_id="${1:-ws-j8w1k9l32}"
+
+  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+
+  if [ $result_status == "null" ]
+  then
+    echo "Workspace $workspace_id not found"
+    return 1
+  fi
+
+  if [ $result_status == "AVAILABLE" ]
+  then
+    echo "Workspace $workspace_id already started"
+    return 1
+  fi
+
+  if [ $result_status != "STOPPED" ]
+  then
+    echo "Workspace $workspace_id cannot be started because its status is $result_status"
+    return 1
+  fi
+
+  local result=$(aws workspaces start-workspaces --start-workspace-requests WorkspaceId=$workspace_id)
+  
+  local failed_requests=$(echo "$result" | jq .FailedRequests) 
+
+  if [ $failed_requests != "[]" ]
+  then
+    echo "Fail to start workspace $workspace_id. Response: "
+    echo "$result"
+    return 1
+  fi
+
+  while :
+  do 
+    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+    echo "$(date +%T) $result_status" 
+
+    if [ $result_status == "AVAILABLE" ]
+    then
+      notify-send -u critical -i ok "Workspace $workspace_id is available"
+      break
+    else
+      sleep 10
+    fi
+  done
+}
+
+
+function aws-workspace-stop() {
+  local workspace_id="${1:-ws-j8w1k9l32}"
+
+  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+
+  if [ $result_status == "null" ]
+  then
+    echo "Workspace $workspace_id not found"
+    return 1
+  fi
+
+  if [ $result_status == "STOPPED" ]
+  then
+    echo "Workspace $workspace_id already stopped"
+    return 1
+  fi
+
+  if [ $result_status != "AVAILABLE" ]
+  then
+    echo "Workspace $workspace_id cannot be stopped because its status is $result_status"
+    return 1
+  fi
+
+  local result=$(aws workspaces stop-workspaces --stop-workspace-requests WorkspaceId=$workspace_id)
+  
+  local failed_requests=$(echo "$result" | jq .FailedRequests)
+
+  if [ $failed_requests != "[]" ]
+  then
+    echo "Fail to stop workspace $workspace_id. Response: "
+    echo "$result"
+    return 1
+  fi
+
+  while :
+  do 
+    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+    echo "$(date +%T) $result_status" 
+
+    if [ $result_status == "STOPPED" ]
+    then
+      notify-send -u critical -i ok "Workspace $workspace_id is stopped"
+      break
+    else
+      sleep 10
+    fi
+  done
 }
