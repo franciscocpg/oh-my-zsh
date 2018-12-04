@@ -133,6 +133,34 @@ function aws-revoke-security-group-ingress-by-id {
   --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'/32"}]}]'
 }
 
+function aws-revoke-security-group-ingress-by-description {
+  local description="${1:-$USERNAME temp access}"
+
+  local result=($(aws ec2 describe-security-groups \
+  | jq -r '.SecurityGroups[]'\
+'| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
+'| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("|"), IpRanges: .IpRanges[]} as $r'\
+'| .IpRanges[] | select(.Description=="'$description'")'\
+'| [$p.Id, .CidrIp, $r.PortRange] | join("|")' \
+| sort -u | sed ':a;N;$!ba;s/\n/ /g'))
+
+  for var in ${result[*]}
+  do
+    local arr=($(echo $var | tr '|' "\n" ))
+
+    local group_id="${arr[1]}"
+    local IP="${arr[2]}"
+    local from_port="${arr[3]}"
+    local to_port="${arr[4]}"
+
+    echo "Removing $var"
+    
+    aws ec2 revoke-security-group-ingress \
+    --group-id "$group_id" \
+    --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$from_port', "ToPort": '$to_port', "IpRanges": [{"CidrIp": "'$IP'"}]}]'
+  done
+}
+
 function aws-list-security-group-ingress-by-name {
   local header="************************************************\t***************\t********************\t********************
 Security Group\tIP\tPort Range\tDescription
