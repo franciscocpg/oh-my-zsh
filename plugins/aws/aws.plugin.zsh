@@ -139,7 +139,7 @@ function aws-revoke-security-group-ingress-by-description {
 '| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
 '| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("|"), IpRanges: .IpRanges[]} as $r'\
 '| .IpRanges[] | select(.Description=="'$description'")'\
-'| [$p.Id, .CidrIp, $r.PortRange] | join("|")' \
+'| [$p.Id, $p.Name, .CidrIp, $r.PortRange] | join("|")' \
 | sort -u | sed ':a;N;$!ba;s/\n/ /g'))
 
   for var in ${result[*]}
@@ -147,9 +147,9 @@ function aws-revoke-security-group-ingress-by-description {
     local arr=($(echo $var | tr '|' "\n" ))
 
     local group_id="${arr[1]}"
-    local IP="${arr[2]}"
-    local from_port="${arr[3]}"
-    local to_port="${arr[4]}"
+    local IP="${arr[3]}"
+    local from_port="${arr[4]}"
+    local to_port="${arr[5]}"
 
     echo "Removing $var"
     
