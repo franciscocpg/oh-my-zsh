@@ -223,7 +223,7 @@ Security Group\tIP\tPort Range\tDescription
   | jq -r '.SecurityGroups[]'\
 '| {Name: .GroupName, Id: .GroupId, IpPermissions: .IpPermissions} as $p'\
 '| .IpPermissions[] | {PortRange: [.FromPort, .ToPort|tostring] | join("-"), IpRanges: .IpRanges[]} as $r'\
-'| .IpRanges[] | select(.Description=="'$description'")'\
+'| .IpRanges[] | select(.Description != null) | select(.Description | match("'$description'"))'\
 '| [$p.Id + " (" + $p.Name + ")", .CidrIp, $r.PortRange, .Description] | join("\t")' \
   | sort -u)
   
