@@ -233,27 +233,26 @@ Security Group\tIP\tPort Range\tDescription
 function aws-workspace-status() {
   local workspace_id="${1:-ws-j8w1k9l32}"
 
-  aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State
+  aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[0].State'
 }
 
 function aws-workspace-start() {
   local workspace_id="${1:-ws-j8w1k9l32}"
-
-  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
-
-  if [ $result_status == "null" ]
+  
+  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[0].State')
+  
+  if [[ $result_status == "null" ]]
   then
     echo "Workspace $workspace_id not found"
     return 1
   fi
-
-  if [ $result_status == "AVAILABLE" ]
+  if [[ $result_status == "AVAILABLE" ]]
   then
     echo "Workspace $workspace_id already started"
     return 1
   fi
 
-  if [ $result_status != "STOPPED" ]
+  if [[ $result_status != "STOPPED" ]]
   then
     echo "Workspace $workspace_id cannot be started because its status is $result_status"
     return 1
@@ -263,7 +262,7 @@ function aws-workspace-start() {
   
   local failed_requests=$(echo "$result" | jq .FailedRequests) 
 
-  if [ $failed_requests != "[]" ]
+  if [[ $failed_requests != "[]" ]]
   then
     echo "Fail to start workspace $workspace_id. Response: "
     echo "$result"
@@ -272,10 +271,10 @@ function aws-workspace-start() {
 
   while :
   do 
-    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[0].State')
     echo "$(date +%T) $result_status" 
 
-    if [ $result_status == "AVAILABLE" ]
+    if [[ $result_status == "AVAILABLE" ]]
     then
       notify-send -u critical -i ok "Workspace $workspace_id is available"
       break
@@ -289,21 +288,21 @@ function aws-workspace-start() {
 function aws-workspace-stop() {
   local workspace_id="${1:-ws-j8w1k9l32}"
 
-  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+  local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[0].State')
 
-  if [ $result_status == "null" ]
+  if [[ $result_status == "null" ]]
   then
     echo "Workspace $workspace_id not found"
     return 1
   fi
 
-  if [ $result_status == "STOPPED" ]
+  if [[ $result_status == "STOPPED" ]]
   then
     echo "Workspace $workspace_id already stopped"
     return 1
   fi
 
-  if [ $result_status != "AVAILABLE" ]
+  if [[ $result_status != "AVAILABLE" ]]
   then
     echo "Workspace $workspace_id cannot be stopped because its status is $result_status"
     return 1
@@ -313,7 +312,7 @@ function aws-workspace-stop() {
   
   local failed_requests=$(echo "$result" | jq .FailedRequests)
 
-  if [ $failed_requests != "[]" ]
+  if [[ $failed_requests != "[]" ]]
   then
     echo "Fail to stop workspace $workspace_id. Response: "
     echo "$result"
@@ -322,10 +321,10 @@ function aws-workspace-stop() {
 
   while :
   do 
-    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r .Workspaces[0].State)
+    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[[0]].State')
     echo "$(date +%T) $result_status" 
 
-    if [ $result_status == "STOPPED" ]
+    if [[ $result_status == "STOPPED" ]]
     then
       notify-send -u critical -i ok "Workspace $workspace_id is stopped"
       break
