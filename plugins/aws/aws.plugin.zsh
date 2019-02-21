@@ -77,7 +77,7 @@ function aws-authorize-security-group-ingress-by-name {
   local from_port="$port_range[1]"
   local to_port="${port_range[2]:-$from_port}"
 
-  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local IP="${3:-$(curl -s https://ipecho.net/plain)}"
   local description="${4:-$USERNAME temp access}"
 
   aws ec2 authorize-security-group-ingress \
@@ -93,7 +93,7 @@ function aws-authorize-security-group-ingress-by-id {
   local from_port="$port_range[1]"
   local to_port="${port_range[2]:-$from_port}"
 
-  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local IP="${3:-$(curl -s https://ipecho.net/plain)}"
   local description="${4:-$USERNAME temp access}"
 
   aws ec2 authorize-security-group-ingress \
@@ -109,7 +109,7 @@ function aws-revoke-security-group-ingress-by-name {
   local from_port="$port_range[1]"
   local to_port="${port_range[2]:-$from_port}"
 
-  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local IP="${3:-$(curl -s https://ipecho.net/plain)}"
 
   aws ec2 revoke-security-group-ingress \
   --group-name "$group_name" \
@@ -124,7 +124,7 @@ function aws-revoke-security-group-ingress-by-id {
   local from_port="$port_range[1]"
   local to_port="${port_range[2]:-$from_port}"
 
-  local IP="${3:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local IP="${3:-$(curl -s https://ipecho.net/plain)}"
 
   aws ec2 revoke-security-group-ingress \
   --group-id "$group_id" \
@@ -194,7 +194,7 @@ Security Group\tIP\tPort Range\tDescription
 }
 
 function aws-list-authorized-security-group-ingress-by-ip {
-  local IP="${1:-$(curl -s https://httpbin.org/ip | jq -r .origin)}"
+  local IP="${1:-$(curl -s https://ipecho.net/plain)}"
 
   local header="************************************************\t***************\t********************\t********************
 Security Group\tIP\tPort Range\tDescription
