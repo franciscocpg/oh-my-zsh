@@ -333,3 +333,7 @@ function aws-workspace-stop() {
     fi
   done
 }
+
+function aws-list-cloudformation-stacks {
+  aws cloudformation describe-stacks --output table --query 'Stacks[*].{Name:StackName,Status:StackStatus}'
+}

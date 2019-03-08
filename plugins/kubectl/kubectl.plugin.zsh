@@ -2,7 +2,7 @@
 #
 # Author: https://github.com/pstadler
 
-alias k8s='kubectl'
+alias k8s='/usr/bin/kubectl'
 if [ $commands[kubectl] ]; then
   source <(kubectl completion zsh)
 
