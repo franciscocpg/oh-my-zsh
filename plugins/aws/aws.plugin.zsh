@@ -357,7 +357,7 @@ function aws-workspace-stop() {
 
   while :
   do 
-    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[[0]].State')
+    local result_status=$(aws workspaces describe-workspaces --workspace-ids $workspace_id | jq -r '.Workspaces[0].State')
     echo "$(date +%T) $result_status" 
 
     if [[ $result_status == "STOPPED" ]]
