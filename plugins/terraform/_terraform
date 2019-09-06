@@ -1,4 +1,4 @@
-#compdef terraform
+#compdef terraform tf
 
 local -a _terraform_cmds
 _terraform_cmds=(
