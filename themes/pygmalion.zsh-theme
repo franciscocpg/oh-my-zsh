@@ -5,9 +5,9 @@ prompt_setup_pygmalion(){
   ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
   ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[yellow]%}⚡%{$reset_color%}"
   ZSH_THEME_GIT_PROMPT_CLEAN=""
-  pathname='if [ $(pwd) = "/" ]; then 
+  pathname='if [ $(pwd) = "/" ]; then
               pathname="/"
-            else         
+            else
               num=`echo $(pwd) | awk '"'BEGIN{FS=\"/\"} {print NF?NF-1:0}'"'`
               if [ "$num" -eq "1" ]; then
                 pathname="$(pwd)"
@@ -41,7 +41,12 @@ prompt_pygmalion_precmd(){
   if [[ $prompt_length -gt 40 ]]; then
     nl=$'\n%{\r%}';
   fi
-  PROMPT="$base_prompt$gitinfo $(emoji-clock) $(date)$nl$post_prompt"
+
+  if [[ -z "$(aws_prompt_info)" ]]; then
+    PROMPT="$base_prompt$gitinfo $(emoji-clock) $(date)$nl$post_prompt"
+  else
+    PROMPT="$base_prompt$gitinfo $(aws_prompt_info) $(emoji-clock) $(date)$nl$post_prompt"
+  fi
 }
 
 prompt_setup_pygmalion
