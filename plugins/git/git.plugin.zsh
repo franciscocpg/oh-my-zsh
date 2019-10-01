@@ -30,7 +30,7 @@ function prune_it() {
   git checkout master
   # Remove the remotes
   git pull --prune
-  # Remove these remotes local ref 
+  # Remove these remotes local ref
   git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -D
 }
 
@@ -61,6 +61,7 @@ alias gapa='git add --patch'
 alias gau='git add --update'
 alias gav='git add --verbose'
 alias gap='git apply'
+alias gac='git add -A; git commit -m'
 
 alias gb='git branch'
 alias gba='git branch -a'
