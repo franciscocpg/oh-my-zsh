@@ -32,7 +32,7 @@ git config fetch.fsck.zeroPaddedFilemode ignore
 git config receive.fsck.zeroPaddedFilemode ignore
 
 printf "${BLUE}%s${NORMAL}\n" "Updating Oh My Zsh"
-if git pull --rebase --stat fork master
+if git pull --allow-unrelated-histories --stat fork master
 then
   git push
   printf '%s' "$GREEN"
