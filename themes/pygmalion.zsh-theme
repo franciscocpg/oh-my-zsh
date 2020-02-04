@@ -43,11 +43,13 @@ prompt_pygmalion_precmd(){
     nl=$'\n%{\r%}';
   fi
 
-  if [[ -z "$(aws_prompt_info)" ]]; then
-    PROMPT="$base_prompt$gitinfo $(emoji-clock) $(date)$nl$post_prompt"
-  else
-    PROMPT="$base_prompt$gitinfo $(aws_prompt_info) $(emoji-clock) $(date)$nl$post_prompt"
+  local aws_prompt_info="$(aws_prompt_info)"
+
+  if [[ ! -z "${aws_prompt_info}" ]]; then
+    aws_prompt_info=" ${aws_prompt_info}"
   fi
+
+  PROMPT="$base_prompt$gitinfo${aws_prompt_info} $(emoji-clock) $(date) ($(battery_pct_prompt))$nl$post_prompt"
 }
 
 prompt_setup_pygmalion
