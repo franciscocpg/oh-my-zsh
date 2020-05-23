@@ -25,29 +25,6 @@ function work_in_progress() {
   fi
 }
 
-function prune_it() {
-  # we must be on master
-  git checkout master
-  # Remove the remotes
-  git pull --prune
-  # Remove these remotes local ref
-  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -D
-}
-
-function truncate() {
-  if [ -z $1 ]; then
-    echo "inform a git hash"
-    return
-  fi
-  git checkout --orphan temp $1
-  git commit -m "Truncated history"
-  git rebase --onto temp $1 master
-  git branch -D temp
-  # The following 2 commands are optional - they keep your git repo in good shape.
-  git prune --progress # delete all the objects w/o references
-  git gc --aggressive # aggressively collect garbage; may take a lot of time on large repos
-}
-
 #
 # Aliases
 # (sorted alphabetically)
@@ -61,12 +38,12 @@ alias gapa='git add --patch'
 alias gau='git add --update'
 alias gav='git add --verbose'
 alias gap='git apply'
-alias gac='git add -A; git commit -m'
+alias gapt='git apply --3way'
 
 alias gb='git branch'
 alias gba='git branch -a'
 alias gbd='git branch -d'
-alias gbda='git branch --no-color --merged | command grep -vE "^(\+|\*|\s*(master|develop|dev)\s*$)" | command xargs -n 1 git branch -d'
+alias gbda='git branch --no-color --merged | command grep -vE "^(\+|\*|\s*(master|development|develop|devel|dev)\s*$)" | command xargs -n 1 git branch -d'
 alias gbD='git branch -D'
 alias gbl='git blame -b -w'
 alias gbnm='git branch --no-merged'
@@ -108,6 +85,11 @@ alias gdct='git describe --tags $(git rev-list --tags --max-count=1)'
 alias gds='git diff --staged'
 alias gdt='git diff-tree --no-commit-id --name-only -r'
 alias gdw='git diff --word-diff'
+
+function gdnolock() {
+  git diff "$@" ":(exclude)package-lock.json" ":(exclude)*.lock"
+}
+compdef _git gdnolock=git-diff
 
 function gdv() { git diff -w "$@" | view - }
 compdef _git gdv=git-diff
@@ -211,7 +193,6 @@ alias gpd='git push --dry-run'
 alias gpf='git push --force-with-lease'
 alias gpf!='git push --force'
 alias gpoat='git push origin --all && git push origin --tags'
-alias gprune=prune_it
 alias gpu='git push upstream'
 alias gpv='git push -v'
 
@@ -282,8 +263,11 @@ alias glum='git pull upstream master'
 alias gwch='git whatchanged -p --abbrev-commit --pretty=medium'
 alias gwip='git add -A; git rm $(git ls-files --deleted) 2> /dev/null; git commit --no-verify --no-gpg-sign -m "--wip-- [skip ci]"'
 
-alias gtruncate=truncate
-
+alias gam='git am'
+alias gamc='git am --continue'
+alias gams='git am --skip'
+alias gama='git am --abort'
+alias gamscp='git am --show-current-patch'
 
 function grename() {
   if [[ -z "$1" || -z "$2" ]]; then

@@ -1,4 +1,4 @@
-#compdef terraform tf
+#compdef terraform
 
 local -a _terraform_cmds opt_args
 _terraform_cmds=(
