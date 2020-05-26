@@ -282,3 +282,30 @@ function grename() {
     git push --set-upstream origin "$2"
   fi
 }
+
+function prune_it() {
+  # we must be on master
+  git checkout master
+  # Remove the remotes
+  git pull --prune
+  # Remove these remotes local ref
+  git branch -vv --no-color | awk '/: gone]/{print $1}' | xargs git branch -D
+}
+
+function truncate() {
+  if [ -z $1 ]; then
+    echo "inform a git hash"
+    return
+  fi
+  git checkout --orphan temp $1
+  git commit -m "Truncated history"
+  git rebase --onto temp $1 master
+  git branch -D temp
+  # The following 2 commands are optional - they keep your git repo in good shape.
+  git prune --progress # delete all the objects w/o references
+  git gc --aggressive # aggressively collect garbage; may take a lot of time on large repos
+}
+
+alias gac='git add -A; git commit -m'
+alias gprune=prune_it
+alias gtruncate=truncate
