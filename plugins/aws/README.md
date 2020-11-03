@@ -3,7 +3,7 @@
 This plugin provides completion support for [awscli](https://docs.aws.amazon.com/cli/latest/reference/index.html)
 and a few utilities to manage AWS profiles and display them in the prompt.
 
-To use it, add `aws` to the plugins array in your zshrc file.
+To use it, make sure [jq](https://stedolan.github.io/jq/download/) is installed, and add `aws` to the plugins array in your zshrc file.
 
 ```zsh
 plugins=(... aws)
@@ -14,6 +14,13 @@ plugins=(... aws)
 * `asp [<profile>]`: sets `$AWS_PROFILE` and `$AWS_DEFAULT_PROFILE` (legacy) to `<profile>`.
   It also sets `$AWS_EB_PROFILE` to `<profile>` for the Elastic Beanstalk CLI.
   Run `asp` without arguments to clear the profile.
+
+* `acp [<profile>]`: in addition to `asp` functionality, it actually changes the profile by
+   assuming the role specified in the `<profile>` configuration. It supports MFA and sets
+   `$AWS_ACCESS_KEY_ID`, `$AWS_SECRET_ACCESS_KEY` and `$AWS_SESSION_TOKEN`, if obtained. It
+   requires the roles to be configured as per the
+   [official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html).
+   Run `acp` without arguments to clear the profile.
 
 * `agp`: gets the current value of `$AWS_PROFILE`.
 
