@@ -48,6 +48,7 @@ function _aws_profiles() {
   reply=($(aws_profiles))
 }
 compctl -K _aws_profiles asp aws_change_access_key
+compctl -K _aws_profiles acp aws_change_access_key
 
 # AWS prompt
 function aws_prompt_info() {
